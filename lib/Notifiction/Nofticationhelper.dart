@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -33,22 +35,29 @@ class NotificationService {
         ?.requestNotificationsPermission();
   }
 
-  static Future<void> showInstantNotification(String title, String body) async {
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
-        android: AndroidNotificationDetails(
-          'instant_notification_channel_id',
-          'Instant Notifications',
-          importance: Importance.max,
-          priority: Priority.high,
+  static Future<void> showInstantNotification(
+      String title, String body, String eventId) async {
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'instant_notification_channel_id',
+        'Instant Notifications',
+        importance: Importance.max,
+        priority: Priority.high,
+        color: Color(0xFFFFD700), // Golden color
+        styleInformation: BigTextStyleInformation(
+          'Reminder: $title\n$body',
+          summaryText: body,
         ),
-        iOS: DarwinNotificationDetails());
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
 
     await flutterLocalNotificationsPlugin.show(
       0,
-      title,
+      'Reminder: $title',
       body,
       platformChannelSpecifics,
-      payload: 'instant_notification',
+      payload: eventId, // Pass the event ID as the payload
     );
   }
 
@@ -67,15 +76,21 @@ class NotificationService {
     try {
       await flutterLocalNotificationsPlugin.zonedSchedule(
         id,
-        title,
+        'Reminder: $title',
         body,
         tz.TZDateTime.from(scheduledTime, tz.local),
-        const NotificationDetails(
+        NotificationDetails(
           android: AndroidNotificationDetails(
             'reminder_channel',
             'Reminder Channel',
             importance: Importance.high,
             priority: Priority.high,
+            color: Color(0xFFFFD700), // Golden color
+            styleInformation: BigTextStyleInformation(
+              'Reminder: $title\n$body',
+              contentTitle: 'Reminder: $title',
+              summaryText: body,
+            ),
           ),
         ),
         uiLocalNotificationDateInterpretation:
@@ -89,5 +104,9 @@ class NotificationService {
       // or provide a user-friendly error message
       print('Error scheduling notification: $e');
     }
+  }
+
+  Future<void> cancelNotification(int id) async {
+    await flutterLocalNotificationsPlugin.cancel(id);
   }
 }

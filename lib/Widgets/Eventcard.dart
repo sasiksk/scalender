@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:scalender/Notifiction/Nofticationhelper.dart';
 import 'package:scalender/Screens/NewTaskPage.dart';
 import '../Data/DatabaseHelper.dart';
 import '../Event.dart';
@@ -54,6 +55,11 @@ class EventCard extends StatelessWidget {
       // Update the status in the UI
       event.status = newStatus;
       (context as Element).markNeedsBuild();
+
+      // Check if the notification needs to be canceled
+      if (newStatus == 'Completed' && event.alarm) {
+        await NotificationService().cancelNotification(event.id);
+      }
     }
   }
 
@@ -80,93 +86,128 @@ class EventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            Row(
+              children: [
+                // First Column
+                Expanded(
+                  flex: 1,
+                  child: IconButton(
+                    icon: Icon(
+                      event.status == 'Pending'
+                          ? Icons.check_box_outline_blank
+                          : Icons.check_box,
+                      color:
+                          event.status == 'Pending' ? Colors.grey : Colors.red,
+                      size: 16,
+                    ),
+                    onPressed: () {
+                      _handleCheckboxToggle(context, event);
+                    },
+                  ),
+                ),
+                // Second Column
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          event.title,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: isChecked
-                              ? const TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Colors.red,
-                                  fontSize: 16,
-                                )
-                              : const TextStyle(
-                                  fontSize: 16,
-                                  color: Color.fromARGB(255, 2, 1, 41),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                        ),
+                      Text(
+                        event.title,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: isChecked
+                            ? const TextStyle(
+                                decoration: TextDecoration.lineThrough,
+                                color: Colors.red,
+                                fontSize: 14,
+                              )
+                            : const TextStyle(
+                                fontSize: 14,
+                                color: Color.fromARGB(255, 2, 1, 41),
+                                fontWeight: FontWeight.bold,
+                              ),
                       ),
-                      Expanded(
-                        child: Text(
-                          event.description.length > 15
-                              ? '${event.description.substring(0, 15)}...'
-                              : event.description,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: isChecked
-                              ? const TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Colors.red,
-                                )
-                              : const TextStyle(
-                                  color: Color.fromARGB(255, 2, 1, 41),
-                                ),
-                        ),
+                      Text(
+                        'Due: ${DateFormat('jm').format(event.date)}',
+                        overflow: TextOverflow.ellipsis,
+                        style: isChecked
+                            ? const TextStyle(
+                                fontSize: 10,
+                                decoration: TextDecoration.lineThrough,
+                                color: Colors.red,
+                              )
+                            : const TextStyle(
+                                fontSize: 10,
+                                color: Color.fromARGB(255, 2, 1, 41),
+                              ),
                       ),
                     ],
                   ),
-                  Row(
+                ),
+                // Third Column
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          'Due: ${DateFormat('jm').format(event.date)}',
-                          overflow: TextOverflow.ellipsis,
-                          style: isChecked
-                              ? const TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Colors.red,
-                                )
-                              : const TextStyle(
-                                  color: Color.fromARGB(255, 2, 1, 41),
-                                ),
-                        ),
+                      Text(
+                        event.description.length > 15
+                            ? '${event.description.substring(0, 15)}...'
+                            : event.description,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: isChecked
+                            ? const TextStyle(
+                                fontSize: 10,
+                                decoration: TextDecoration.lineThrough,
+                                color: Colors.red,
+                              )
+                            : const TextStyle(
+                                fontSize: 10,
+                                color: Color.fromARGB(255, 2, 1, 41),
+                              ),
                       ),
-                      Expanded(
-                        child: Text(
-                          'Status: ${event.status}',
-                          overflow: TextOverflow.ellipsis,
-                          style: isChecked
-                              ? const TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Colors.red,
-                                )
-                              : const TextStyle(
-                                  color: Color.fromARGB(255, 2, 1, 41),
-                                ),
-                        ),
+                      Text(
+                        'Status: ${event.status}',
+                        overflow: TextOverflow.ellipsis,
+                        style: isChecked
+                            ? const TextStyle(
+                                fontSize: 10,
+                                decoration: TextDecoration.lineThrough,
+                                color: Colors.red,
+                              )
+                            : const TextStyle(
+                                fontSize: 10,
+                                color: Color.fromARGB(255, 2, 1, 41),
+                              ),
                       ),
+                    ],
+                  ),
+                ),
+                // Fourth Column
+                Expanded(
+                  flex: 3,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       IconButton(
                         icon: Icon(
-                          event.status == 'Pending'
-                              ? Icons.check_box_outline_blank
-                              : Icons.check_box,
-                          color: event.status == 'Pending'
-                              ? Colors.grey
-                              : Colors.red,
+                          event.alarm ? Icons.alarm : Icons.alarm_off,
+                          color: Colors.red,
+                          size: 16,
                         ),
                         onPressed: () {
-                          _handleCheckboxToggle(context, event);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(event.alarm
+                                  ? 'Alarm is set for this event.'
+                                  : 'Alarm is not set for this event.'),
+                            ),
+                          );
                         },
                       ),
                       PopupMenuButton<String>(
@@ -188,8 +229,8 @@ class EventCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),

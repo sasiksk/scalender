@@ -4,6 +4,7 @@ class Event {
   final DateTime date;
   final String description;
   String status;
+  final bool alarm;
 
   Event({
     required this.id,
@@ -11,5 +12,6 @@ class Event {
     required this.date,
     required this.description,
     required this.status,
+    required this.alarm,
   });
 }

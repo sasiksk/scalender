@@ -40,6 +40,7 @@ class _CalendarPageState extends State<CalendarPage> {
         description: eventTask['descr'],
         status: eventTask['status'],
         id: eventTask['eid'],
+        alarm: eventTask['alarm'] == 1 ? true : false,
       );
 
       if (events[eventDateOnly] == null) {
@@ -61,37 +62,81 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          TableCalendar<Event>(
-            firstDay: DateTime.utc(2000, 1, 1),
-            lastDay: DateTime.utc(2100, 12, 31),
-            focusedDay: _focusedDay,
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
-            },
-            calendarFormat: _calendarFormat,
-            onFormatChanged: (format) {
-              setState(() {
-                _calendarFormat = format;
-              });
-            },
-            onPageChanged: (focusedDay) {
-              _focusedDay = focusedDay;
-            },
-            eventLoader: _getEventsForDay,
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+          side: BorderSide(
+              color: const Color.fromARGB(255, 14, 0, 0), width: 1.0),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15.0),
+            gradient: LinearGradient(
+              colors: [
+                const Color.fromARGB(255, 152, 142, 245),
+                const Color.fromARGB(255, 184, 222, 241),
+                const Color.fromARGB(255, 111, 197, 240),
+                const Color.fromARGB(255, 152, 142, 245),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-          const SizedBox(height: 8.0),
-          ..._getEventsForDay(_selectedDay ?? _focusedDay).map(
-            (event) => EventCard(event: event),
+          child: Column(
+            children: [
+              TableCalendar<Event>(
+                firstDay: DateTime.utc(2000, 1, 1),
+                lastDay: DateTime.utc(2100, 12, 31),
+                focusedDay: _focusedDay,
+                selectedDayPredicate: (day) {
+                  return isSameDay(_selectedDay, day);
+                },
+                onDaySelected: (selectedDay, focusedDay) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay;
+                  });
+                },
+                calendarFormat: _calendarFormat,
+                onFormatChanged: (format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                },
+                onPageChanged: (focusedDay) {
+                  _focusedDay = focusedDay;
+                },
+                eventLoader: _getEventsForDay,
+              ),
+              const SizedBox(height: 2.0),
+              Divider(
+                color: Colors.grey,
+                thickness: 1.0,
+              ),
+              Center(
+                child: Text(
+                  _getEventsForDay(_selectedDay ?? _focusedDay).isEmpty
+                      ? 'No Events for today'
+                      : 'Today\'s Events',
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              ..._getEventsForDay(_selectedDay ?? _focusedDay)
+                  .map(
+                    (event) => Container(
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      margin: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: EventCard(event: event),
+                    ),
+                  )
+                  .toList(),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:permission_handler/permission_handler.dart';
+
+import 'package:scalender/Screens/task_helper.dart';
 import 'package:scalender/Widgets/ReminederConfig/ReminderConfigPage.dart';
 import 'package:scalender/Data/DatabaseHelper.dart'; // Import DatabaseHelper
 import '../Widgets/AddCategoryDialog.dart';
 import '../Widgets/CustomText.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart' as cl;
-import 'package:scalender/Notifiction/Nofticationhelper.dart';
+
+// Import task_helper
 
 class NewTaskPage extends StatefulWidget {
   final int? eventId;
@@ -56,33 +58,6 @@ class _NewTaskPageState extends State<NewTaskPage> {
         _selCat = eventTask['catname'];
         _isReminderSet = eventTask['alarm'] == 1;
       });
-    }
-  }
-
-  Future<void> checkNotificationPermission() async {
-    try {
-      // Check if notification permission is already granted
-      if (!await Permission.notification.isGranted) {
-        // Request notification permission
-        final status = await Permission.notification.request();
-
-        // Check the updated status
-        if (status.isGranted) {
-          // Reinitialize notifications if permission is granted
-          await NotificationService.init();
-          print("Permission Granted");
-        } else if (status.isDenied) {
-          print("Permission Denied. Notifications will not work.");
-        } else if (status.isPermanentlyDenied) {
-          print(
-              "Permission Permanently Denied. Please enable notifications in settings.");
-        }
-      } else {
-        print("Permission already granted.");
-      }
-    } catch (e) {
-      // Handle any unexpected errors
-      print("Error while checking or requesting notification permission: $e");
     }
   }
 
@@ -169,89 +144,17 @@ class _NewTaskPageState extends State<NewTaskPage> {
   }
 
   void _addTask() async {
-    if (_formKey.currentState!.validate()) {
-      final erid = await DatabaseHelper.getNextEventTaskId();
-
-      if (_isReminderSet) {
-        DateTime taskDateTime =
-            DateFormat('yMMMd').add_jm().parse(_dateTimeController.text);
-        DateTime reminderDateTime =
-            dbreminder.calculateReminderTime(_reminderText, taskDateTime);
-
-        if (reminderDateTime.isBefore(DateTime.now())) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Invalid Reminder'),
-                content: Text(
-                    'Cannot set a reminder for a past time. Task not added.'),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('OK'),
-                  ),
-                ],
-              );
-            },
-          );
-          return; // Exit the function without adding the task
-        }
-
-        final newTask = {
-          'eid': erid,
-          'type': 'Task',
-          'title': _titleController.text,
-          'descr': _descriptionController.text,
-          'stdatetime': _dateTimeController.text,
-          'enddatetime': null,
-          'catname': _selCat,
-          'status': 'Pending',
-          'alarm': _isReminderSet ? true : false,
-          'reminder_time': _isReminderSet ? reminderDateTime.toString() : null,
-        };
-
-        await dbtask.insertEventTask(newTask);
-
-        await checkNotificationPermission();
-
-        // Schedule the notification
-
-        if (reminderDateTime.isBefore(DateTime.now())) {
-          print(
-              'Scheduled time is in the past. Notification will not be scheduled.');
-          return;
-        } else {
-          final notificationService = NotificationService();
-          await notificationService.scheduleNotification(
-              erid,
-              _titleController.text,
-              _descriptionController.text,
-              reminderDateTime);
-        }
-      }
-
-      // Show a success message or navigate to another page
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Success'),
-            content: Text('Task added successfully'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
+    await addOrUpdateTask(
+      formKey: _formKey,
+      titleController: _titleController,
+      descriptionController: _descriptionController,
+      dateTimeController: _dateTimeController,
+      selectedCategory: _selCat,
+      isReminderSet: _isReminderSet,
+      reminderText: _reminderText,
+      eventId: widget.eventId,
+      context: context,
+    );
   }
 
   @override

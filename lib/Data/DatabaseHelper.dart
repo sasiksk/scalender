@@ -22,11 +22,11 @@ class DatabaseHelper {
         descr TEXT,
         stdatetime TEXT NOT NULL,
         enddatetime TEXT,
-        catname Text,
+        catid int NOT NULL,
         status TEXT ,
         alarm bool,
         reminder_time TEXT,
-        FOREIGN KEY (catname) REFERENCES Categories(name)
+        FOREIGN KEY (catid) REFERENCES Categories(catid)
             
         )
     ''');
@@ -34,7 +34,8 @@ class DatabaseHelper {
         // Create Categories table
         await db.execute('''
       CREATE TABLE Categories (
-        name TEXT PRIMARY KEY,
+        catid INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT ,
         color TEXT NOT NULL
       )
     ''');
@@ -72,6 +73,31 @@ class dbtask {
   static Future<void> insertEventTask(Map<String, dynamic> eventTask) async {
     final db = await DatabaseHelper.getDatabase();
     await db.insert('EventTask', eventTask);
+  }
+
+  static Future<int> getCategoryId(String? categoryName) async {
+    final db = await DatabaseHelper.getDatabase();
+
+    final List<Map<String, dynamic>> result = await db.query(
+      'Categories',
+      where: 'name = ?',
+      whereArgs: [categoryName],
+    );
+    if (result.isNotEmpty) {
+      return result.first['catid'];
+    } else {
+      throw Exception('Category not found');
+    }
+  }
+
+  static Future<void> updateEventTask(Map<String, dynamic> task, int id) async {
+    final db = await DatabaseHelper.getDatabase();
+    await db.update(
+      'EventTask',
+      task,
+      where: 'eid = ?',
+      whereArgs: [id],
+    );
   }
 }
 

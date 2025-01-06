@@ -11,7 +11,9 @@ class CustomSliverAppBar extends StatelessWidget
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      title: Text('Simple Task Calendar'),
+      backgroundColor: Colors.blue.shade300,
+      title: Text('Task Calendar'),
+      centerTitle: true,
       floating: true,
       snap: true,
       actions: [
