@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import 'package:scalender/Screens/task_helper.dart';
 import 'package:scalender/Widgets/ReminederConfig/ReminderConfigPage.dart';
 import 'package:scalender/Data/DatabaseHelper.dart'; // Import DatabaseHelper
-import '../Widgets/AddCategoryDialog.dart';
-import '../Widgets/CustomText.dart';
+import '../Widgets/Categoryconfig/AddCategoryDialog.dart';
+import '../Widgets/Categoryconfig/DeleteCategoryDialog.dart';
+import '../Widgets/home/CustomText.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart' as cl;
 
 // Import task_helper
@@ -51,11 +53,21 @@ class _NewTaskPageState extends State<NewTaskPage> {
 
     if (eventTasks.isNotEmpty) {
       final eventTask = eventTasks.first;
+      final categoryId = eventTask['catid'];
+      final category = await db.query(
+        'Categories',
+        where: 'catid = ?',
+        whereArgs: [categoryId],
+      );
+      if (category.isNotEmpty) {
+        _selCat = category.first['name'] as String?;
+      }
       setState(() {
         _titleController.text = eventTask['title'];
         _descriptionController.text = eventTask['descr'];
         _dateTimeController.text = eventTask['stdatetime'];
-        _selCat = eventTask['catname'];
+        _selCat = category.first['name'] as String?;
+
         _isReminderSet = eventTask['alarm'] == 1;
       });
     }
@@ -101,6 +113,81 @@ class _NewTaskPageState extends State<NewTaskPage> {
     }
   }
 
+  void _showDeleteCategoryDialog() async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => DeleteCategoryDialog(categories: _category),
+    );
+    if (result != null) {
+      final categoryName = result;
+
+      if (categoryName.toLowerCase() == 'default') {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Cannot Delete'),
+            content: Text('The default category cannot be deleted.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Delete Category'),
+          content: Text(
+              'Are you sure you want to delete the category "$categoryName"?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _deleteCategory(categoryName);
+              },
+              child: Text('Delete'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteCategory(String categoryName) async {
+    try {
+      final categoryId = await dbtask.getCategoryId(categoryName);
+      final defaultCategoryId = await dbtask.getCategoryId('default');
+
+      await dbtask.updateCategoryId(categoryId, defaultCategoryId);
+      await dbcategory.deleteCategory(categoryId);
+
+      setState(() {
+        _category.remove(categoryName);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Category "$categoryName" deleted.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting category: $e')),
+      );
+    }
+  }
+
   void _showAddCategoryDialog() async {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -128,7 +215,7 @@ class _NewTaskPageState extends State<NewTaskPage> {
         );
       } else {
         setState(() {
-          _category.add(categoryName);
+          _selCat = categoryName;
         });
 
         final newCategory = {
@@ -161,143 +248,219 @@ class _NewTaskPageState extends State<NewTaskPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('New Task'),
+        title: Text(widget.eventId != null ? 'Update Task' : 'New Task'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomTextField(
-                controller: _titleController,
-                labelText: 'Title',
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              CustomTextField(
-                controller: _descriptionController,
-                labelText: 'Description',
-                hintText: 'Enter description here',
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a description';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              const Text('Add to Category '),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField(
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: const BorderSide(width: 1),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color.fromARGB(
+                  255, 224, 241, 177), // Light violet (top-left)
+              // Lighter blue (middle)
+              const Color.fromARGB(
+                  255, 184, 222, 241), // Light sky blue (bottom-right)
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomTextField(
+                  controller: _titleController,
+                  labelText: 'Title',
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a title';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: _descriptionController,
+                  labelText: 'Description',
+                  hintText: 'Enter description here',
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a description';
+                    }
+                    return null;
+                  },
+                ),
+                Divider(),
+                const SizedBox(height: 16),
+                Text('Add to Category ',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: GoogleFonts.tinos().fontFamily)),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: const BorderSide(width: 1),
+                          ),
                         ),
+                        value: _category.contains(_selCat) ? _selCat : null,
+                        items: _category.map((String category) {
+                          return DropdownMenuItem<String>(
+                            value: category,
+                            child: Text(category,
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontFamily:
+                                        GoogleFonts.tinos().fontFamily)),
+                          );
+                        }).toList(),
+                        onChanged: (newValue) {
+                          setState(() {
+                            _selCat = newValue!;
+                          });
+                        },
                       ),
-                      value: _selCat,
-                      items: _category.map((String category) {
-                        return DropdownMenuItem<String>(
-                          value: category,
-                          child: Text(category),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
+                    ),
+                    PopupMenuButton<String>(
+                      onSelected: (String value) {
+                        if (value == 'Add') {
+                          _showAddCategoryDialog();
+                        } else if (value == 'Delete') {
+                          _showDeleteCategoryDialog();
+                          setState(() {}); // Reload the dropdown menu
+                        }
+                      },
+                      itemBuilder: (BuildContext context) {
+                        return {'Add', 'Delete'}.map((String choice) {
+                          return PopupMenuItem<String>(
+                            value: choice,
+                            child: Text(choice),
+                          );
+                        }).toList();
+                      },
+                      icon: const Icon(
+                        Icons.playlist_add_circle,
+                        size: 30,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Divider(),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomTextField(
+                        controller: _dateTimeController,
+                        labelText: 'Date & Time',
+                        readOnly: true,
+                        onTap: _presentDateTimePicker,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please select a date and time';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.calendar_today),
+                      onPressed: _presentDateTimePicker,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Divider(),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _isReminderSet,
+                      onChanged: (value) {
                         setState(() {
-                          _selCat = newValue!;
+                          _isReminderSet = value!;
                         });
                       },
                     ),
-                  ),
-                  IconButton(
-                    onPressed: _showAddCategoryDialog,
-                    icon: const Icon(
-                      Icons.playlist_add_circle,
-                      size: 30,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Divider(),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomTextField(
-                      controller: _dateTimeController,
-                      labelText: 'Date & Time',
-                      readOnly: true,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please select a date and time';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.calendar_today),
-                    onPressed: _presentDateTimePicker,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Divider(),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Checkbox(
-                    value: _isReminderSet,
-                    onChanged: (value) {
-                      setState(() {
-                        _isReminderSet = value!;
-                      });
-                    },
-                  ),
-                  const Text('Set Alarm'),
-                  if (_isReminderSet)
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.alarm),
-                          onPressed: () async {
-                            final result = await showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                content: ReminderConfigPage(),
-                              ),
-                            );
-                            if (result != null) {
-                              setState(() {
-                                _reminderText = result;
-                              });
-                            }
-                          },
-                        ),
-                        Text(_reminderText),
-                      ],
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: ElevatedButton(
-                  onPressed: _addTask, // Call the _addTask function
-                  child: const Text('Add Task'),
+                    const Text('Set Alarm'),
+                    if (_isReminderSet)
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.alarm),
+                            onPressed: () async {
+                              final result = await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  content: ReminderConfigPage(),
+                                ),
+                              );
+                              if (result != null) {
+                                setState(() {
+                                  _reminderText = result;
+                                });
+                              }
+                            },
+                          ),
+                          Text(_reminderText),
+                        ],
+                      ),
+                  ],
                 ),
-              ),
-            ],
+                Divider(),
+                const SizedBox(height: 80),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _formKey.currentState?.reset();
+                          _titleController.clear();
+                          _descriptionController.clear();
+                          _dateTimeController.clear();
+                          setState(() {
+                            _selCat = null;
+                            _isReminderSet = false;
+                            _reminderText = "10 Min Before";
+                          });
+                        },
+                        child: const Text('Reset'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Back'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _addTask, // Call the _addTask function
+                        child: const Text('Add Task'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:scalender/Widgets/CalendarPage.dart';
-import 'package:scalender/Widgets/calender_drawer.dart';
-import 'package:scalender/Widgets/custom_app_bar.dart';
+import 'package:flutter/services.dart';
+import 'package:scalender/Data/backuppage.dart';
+import 'package:scalender/Data/restorepage.dart';
+import 'package:scalender/Widgets/home/CalendarPage.dart';
+import 'package:scalender/Widgets/home/calender_drawer.dart';
+import 'package:scalender/Widgets/home/custom_app_bar.dart';
+
 import '../Screens/NewTaskPage.dart';
 
 class HomePage extends StatefulWidget {
@@ -62,26 +66,41 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 icon: const Icon(Icons.home),
                 onPressed: () {
-                  setState(() {});
+                  setState(() {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomePage()),
+                    );
+                  });
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.search),
+                icon: const Icon(Icons.backup),
                 onPressed: () {
-                  setState(() {});
+                  setState(() {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => DownloadDBScreen()),
+                    );
+                  });
                 },
               ),
-              SizedBox(width: 56.0), // Space for the floating action button
               IconButton(
-                icon: const Icon(Icons.favorite_border_outlined),
+                icon: const Icon(Icons.restore),
                 onPressed: () {
-                  setState(() {});
+                  setState(() {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => RestorePage()),
+                    );
+                  });
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.account_circle_outlined),
+                icon: const Icon(Icons.exit_to_app),
                 onPressed: () {
-                  setState(() {});
+                  SystemNavigator.pop();
                 },
               ),
             ],

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:scalender/Widgets/Eventcard.dart';
+import 'package:scalender/Widgets/home/Eventcard.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../Event.dart';
+import '../../Data/Event.dart';
 import 'package:scalender/Data/DatabaseHelper.dart';
 // Import the custom event card widget
 

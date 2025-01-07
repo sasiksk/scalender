@@ -8,7 +8,7 @@ class DatabaseHelper {
 
     // Open the database
     final db = await sql.openDatabase(
-      path.join(dbPath, 'finance3.db'),
+      path.join(dbPath, 'todocalender.db'),
       version: 1,
       onCreate: (db, version) async {
         var batch = db.batch();
@@ -64,12 +64,23 @@ class DatabaseHelper {
   static Future<void> dropDatabase() async {
     final dbPath = await sql.getDatabasesPath();
     //final dbPath = await getDatabasePath();
-    final pathToDb = path.join(dbPath, 'finance3.db');
+    final pathToDb = path.join(dbPath, 'todocalender.db');
     await sql.deleteDatabase(pathToDb);
   }
 }
 
 class dbtask {
+  static Future<void> updateCategoryId(
+      int oldCategoryId, int newCategoryId) async {
+    final db = await DatabaseHelper.getDatabase();
+    await db.update(
+      'EventTask',
+      {'catid': newCategoryId},
+      where: 'catid = ?',
+      whereArgs: [oldCategoryId],
+    );
+  }
+
   static Future<void> insertEventTask(Map<String, dynamic> eventTask) async {
     final db = await DatabaseHelper.getDatabase();
     await db.insert('EventTask', eventTask);
@@ -102,6 +113,34 @@ class dbtask {
 }
 
 class dbcategory {
+  static Future<void> deleteCategory(int categoryId) async {
+    final db = await DatabaseHelper.getDatabase();
+    await db.delete(
+      'Categories',
+      where: 'catid = ?',
+      whereArgs: [categoryId],
+    );
+  }
+
+  static Future<int> getCategoryIdByName(String categoryName) async {
+    final db = await DatabaseHelper.getDatabase();
+    final result = await db.query(
+      'Categories',
+      columns: ['id'],
+      where: 'name = ?',
+      whereArgs: [categoryName],
+    );
+    if (result.isNotEmpty) {
+      return result.first['id'] as int;
+    } else {
+      throw Exception('Category not found');
+    }
+  }
+
+  static Future<int> getDefaultCategoryId() async {
+    return await getCategoryIdByName('default');
+  }
+
   static Future<void> insertCategory(Map<String, dynamic> category) async {
     final db = await DatabaseHelper.getDatabase();
     await db.insert('Categories', category);

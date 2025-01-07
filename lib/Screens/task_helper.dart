@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:scalender/Data/DatabaseHelper.dart';
+import 'package:scalender/HomePage.dart';
 import 'package:scalender/Notifiction/Nofticationhelper.dart';
 
 Future<void> manageNotification(int eventId, DateTime reminderDateTime,
@@ -33,7 +34,7 @@ Future<void> addOrUpdateTask({
   int? eventId,
   required BuildContext context,
 }) async {
-  if (formKey.currentState!.validate()) {
+  if (formKey.currentState!.validate() && selectedCategory != null) {
     final erid = eventId ?? await DatabaseHelper.getNextEventTaskId();
 
     DateTime taskDateTime =
@@ -106,6 +107,27 @@ Future<void> addOrUpdateTask({
           title: Text('Success'),
           content: Text(
               'Task ${eventId == null ? 'added' : 'updated'} successfully'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  } else {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text('Please fill all the fields'),
           actions: [
             TextButton(
               onPressed: () {

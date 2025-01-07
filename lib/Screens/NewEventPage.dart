@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:scalender/Data/DatabaseHelper.dart';
-import 'package:scalender/Widgets/AddCategoryDialog.dart';
+import 'package:scalender/Widgets/Categoryconfig/AddCategoryDialog.dart';
 import 'package:scalender/Widgets/ReminederConfig/ReminderConfigPage.dart';
-import '../Widgets/CustomText.dart';
+import '../Widgets/home/CustomText.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart' as cl;
 
 class NewEventPage extends StatefulWidget {

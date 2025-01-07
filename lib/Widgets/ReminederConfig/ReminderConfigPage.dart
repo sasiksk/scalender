@@ -10,8 +10,6 @@ class ReminderConfigPage extends StatefulWidget {
 
 class _ReminderConfigPageState extends State<ReminderConfigPage> {
   String _reminderText = "10 Min Before"; // Default reminder text
-  String _customUnit = "minutes"; // Initialize the custom unit variable
-  String _customValue = ""; // Initialize the custom value
 
   @override
   Widget build(BuildContext context) {
@@ -21,60 +19,12 @@ class _ReminderConfigPageState extends State<ReminderConfigPage> {
       ),
       body: ListView(
         children: [
-          ListTile(
-            title: Text("At Start"),
-            onTap: () {
-              setState(() {
-                _reminderText = "At Start";
-              });
-              Navigator.pop(context, _reminderText);
-            },
-          ),
-          ListTile(
-            title: Text("1 Min Before"),
-            onTap: () {
-              setState(() {
-                _reminderText = "1 Min Before";
-              });
-              Navigator.pop(context, _reminderText);
-            },
-          ),
-          ListTile(
-            title: Text("5 Min Before"),
-            onTap: () {
-              setState(() {
-                _reminderText = "5 Min Before";
-              });
-              Navigator.pop(context, _reminderText);
-            },
-          ),
-          ListTile(
-            title: Text("10 Min Before"),
-            onTap: () {
-              setState(() {
-                _reminderText = "10 Min Before";
-              });
-              Navigator.pop(context, _reminderText);
-            },
-          ),
-          ListTile(
-            title: Text("30 Min Before"),
-            onTap: () {
-              setState(() {
-                _reminderText = "30 Min Before";
-              });
-              Navigator.pop(context, _reminderText);
-            },
-          ),
-          ListTile(
-            title: Text("1 Hour Before"),
-            onTap: () {
-              setState(() {
-                _reminderText = "1 Hour Before";
-              });
-              Navigator.pop(context, _reminderText);
-            },
-          ),
+          _buildListTile("At Start"),
+          _buildListTile("1 Min Before"),
+          _buildListTile("5 Min Before"),
+          _buildListTile("10 Min Before"),
+          _buildListTile("30 Min Before"),
+          _buildListTile("1 Hour Before"),
           ListTile(
             title: Text("Custom"),
             onTap: () async {
@@ -94,6 +44,18 @@ class _ReminderConfigPageState extends State<ReminderConfigPage> {
           ),
         ],
       ),
+    );
+  }
+
+  ListTile _buildListTile(String text) {
+    return ListTile(
+      title: Text(text),
+      onTap: () {
+        setState(() {
+          _reminderText = text;
+        });
+        Navigator.pop(context, _reminderText);
+      },
     );
   }
 }
