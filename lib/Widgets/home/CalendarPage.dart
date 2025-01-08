@@ -128,7 +128,7 @@ class _CalendarPageState extends State<CalendarPage> {
               ..._getEventsForDay(_selectedDay ?? _focusedDay)
                   .map(
                     (event) => Container(
-                      width: MediaQuery.of(context).size.width * 0.9,
+                      width: MediaQuery.of(context).size.width * 1.1,
                       margin: const EdgeInsets.symmetric(vertical: 4.0),
                       child: EventCard(event: event),
                     ),

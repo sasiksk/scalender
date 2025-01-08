@@ -87,9 +87,8 @@ class EventCard extends StatelessWidget {
                   whereArgs: [eventId],
                 );
                 await NotificationService().cancelNotification(eventId);
-                Navigator.of(context).pushAndRemoveUntil(
+                Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => HomePage()),
-                  (Route<dynamic> route) => false,
                 );
               },
               child: Text("OK"),
@@ -181,7 +180,7 @@ class EventCard extends StatelessWidget {
                   ),
                 ),
 
-                SizedBox(height: 20),
+                SizedBox(height: 5),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -256,9 +255,7 @@ class EventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      //onTap: () => _updateEvent(context, event.id),
-      onLongPress: () => _showEventDetailsDialog(context, event),
-
+      onTap: () => _showEventDetailsDialog(context, event),
       child: Card(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -366,7 +363,7 @@ class EventCard extends StatelessWidget {
                   ),
                   // Fourth Column
                   Expanded(
-                    flex: 3,
+                    flex: 2,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
