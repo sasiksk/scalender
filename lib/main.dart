@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:scalender/HomePage.dart';
 import 'package:scalender/Notifiction/Nofticationhelper.dart';
+import 'package:scalender/location_service.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -9,6 +10,7 @@ Future<void> main() async {
 
   tz.initializeTimeZones();
 
+  //await LocationService.initializeTimeZone();
   tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
   await NotificationService.init();
 

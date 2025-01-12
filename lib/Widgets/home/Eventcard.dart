@@ -363,7 +363,7 @@ class EventCard extends StatelessWidget {
                   ),
                   // Fourth Column
                   Expanded(
-                    flex: 2,
+                    flex: 3,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

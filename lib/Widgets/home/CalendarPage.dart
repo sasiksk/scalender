@@ -116,8 +116,8 @@ class _CalendarPageState extends State<CalendarPage> {
               Center(
                 child: Text(
                   _getEventsForDay(_selectedDay ?? _focusedDay).isEmpty
-                      ? 'No Events for today'
-                      : 'Today\'s Events',
+                      ? 'No Events/Tasks for today'
+                      : 'Today\'s Events/Tasks',
                   style: TextStyle(
                     fontSize: 14.0,
                     fontWeight: FontWeight.bold,
@@ -128,7 +128,7 @@ class _CalendarPageState extends State<CalendarPage> {
               ..._getEventsForDay(_selectedDay ?? _focusedDay)
                   .map(
                     (event) => Container(
-                      width: MediaQuery.of(context).size.width * 1.1,
+                      width: MediaQuery.of(context).size.width * 0.9,
                       margin: const EdgeInsets.symmetric(vertical: 4.0),
                       child: EventCard(event: event),
                     ),

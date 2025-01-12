@@ -89,6 +89,7 @@ class NotificationService {
         color: Color(0xFFFFD700), // Golden color
         styleInformation: BigTextStyleInformation(
           'Reminder: $title\n$body',
+          contentTitle: 'Reminder: $title',
           summaryText: body,
         ),
       ),
