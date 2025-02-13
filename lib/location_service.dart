@@ -50,6 +50,7 @@ class LocationService {
 
     // Get the current time zone based on the position
     final double latitude = position.latitude;
+
     final double longitude = position.longitude;
     final String timeZoneId = tz.TZDateTime.now(tz.local).timeZoneName;
     final tz.Location location = tz.getLocation(timeZoneId);
